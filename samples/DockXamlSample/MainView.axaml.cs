@@ -2,17 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia.Collections;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform.Storage;
 using Dock.Avalonia.Controls;
 using Dock.Model;
 using Dock.Model.Avalonia.Controls;
-using Dock.Model.Avalonia.Json;
 using Dock.Model.Core;
 using Dock.Serializer;
 
@@ -171,6 +170,51 @@ public partial class MainView : UserControl
     private void FileCloseLayout_OnClick(object? sender, RoutedEventArgs e)
     {
         CloseLayout();
+    }
+
+    /// <summary>
+    /// Called if the user chooses File->New tool from the main menu.
+    /// A new tool is added to the right side (but only if it exists).
+    /// </summary>
+    /// <param name="sender">The sender.</param>
+    /// <param name="e">The <see cref="RoutedEventArgs"/> instance containing the event data.</param>
+    private void FileNewTool_OnClick(object? sender, RoutedEventArgs e)
+    {
+        if (this.FindControl<DockControl>("Dock") is { } dock &&
+            dock.Factory is { } factory)
+        {
+            foreach (var dockable in factory.VisibleDockableControls.ToArray())
+            {
+                if (dockable.Key is ToolDock tooldock && tooldock.Alignment == Alignment.Right)
+                {
+                    // create a new ViewModel
+                    var newToolModel = new Tool();
+                    newToolModel.Id = "ID of MenuTool";
+                    newToolModel.Title = "MenuTool";
+
+                    // provide the ViewModel with a method to create its view
+                    newToolModel.Content = new Func<object, TemplateResult<Control>>((data) => GetViewForViewModel(newToolModel));
+
+                    // add the view model
+                    factory.AddDockable(tooldock, newToolModel);
+                    factory.SetActiveDockable(newToolModel);
+                    break;
+                }
+
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the view for the given view model.
+    /// </summary>
+    /// <param name="viewModel">The view model.</param>
+    /// <returns></returns>
+    private TemplateResult<Control> GetViewForViewModel(object viewModel)
+    {
+        var view = new MenuToolView() { DataContext = viewModel };
+        var result = new TemplateResult<Control>((Control)view, null);
+        return result;
     }
 }
 
