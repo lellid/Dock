@@ -1,10 +1,13 @@
 ﻿using System.Diagnostics;
+using System.Linq;
 using System.Windows.Input;
-using DockMvvmSample.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Dock.Model.Controls;
 using Dock.Model.Core;
+using Dock.Model.Mvvm.Controls;
+using DockMvvmSample.Models;
+using DockMvvmSample.ViewModels.Tools;
 
 namespace DockMvvmSample.ViewModels;
 
@@ -20,6 +23,8 @@ public class MainWindowViewModel : ObservableObject
     }
 
     public ICommand NewLayout { get; }
+
+    public ICommand NewTool { get; }
 
     public MainWindowViewModel()
     {
@@ -38,6 +43,7 @@ public class MainWindowViewModel : ObservableObject
         }
 
         NewLayout = new RelayCommand(ResetLayout);
+        NewTool = new RelayCommand(CreateNewTool);
     }
 
     private void DebugFactoryEvents(IFactory factory)
@@ -162,6 +168,23 @@ public class MainWindowViewModel : ObservableObject
         {
             Layout = layout;
             _factory?.InitLayout(layout);
+        }
+    }
+
+    private void CreateNewTool()
+    {
+        if (Layout?.Factory is { } factory)
+        {
+            foreach (var dockable in factory.VisibleDockableControls.ToArray())
+            {
+                if (dockable.Key is ToolDock dock && dock.Alignment == Alignment.Right)
+                {
+                    var newToolModel = new MenuToolViewModel();
+                    Layout.Factory.AddDockable(dock, newToolModel);
+                    Layout.Factory.SetActiveDockable(newToolModel);
+                    break;
+                }
+            }
         }
     }
 }

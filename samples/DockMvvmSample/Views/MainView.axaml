@@ -21,6 +21,7 @@
     <Menu Grid.Row="0" Grid.Column="0" VerticalAlignment="Top">
       <MenuItem Header="_File">
         <MenuItem Header="_New Layout" Command="{Binding NewLayout}" />
+        <MenuItem Header="New Tool" Command="{Binding NewTool}" />
       </MenuItem>
       <MenuItem Header="_Window" DataContext="{Binding Layout}">
         <MenuItem Header="_Exit Windows" Command="{Binding ExitWindows}" />
